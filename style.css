@@ -1,0 +1,14 @@
+body {
+	text-align: center;
+	line-height: 1.7em;
+}
+textarea {
+	width: 70%;
+	height: 7em;
+	font-size: 1.2em;
+	padding: 0.4em;
+}
+#msg {
+	color: red;
+	font-size: 0.9em;
+}

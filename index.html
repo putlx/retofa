@@ -1,0 +1,27 @@
+<html>
+
+<head>
+	<title>Regular Expression to NFA</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/viz.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/lite.render.js"></script>
+	<link rel="stylesheet" href="style.css">
+	<script src="retonfa.js"></script>
+	<script src="index.js"></script>
+</head>
+
+<body>
+	<textarea id="re" placeholder="Regular Expression"></textarea>
+	<div id="msg"></div>
+	<input type="checkbox" , id="sc">
+	<label for="sc">Take single character as token</label>
+	<br>
+	<button onclick="draw(reToEpsilonNfa)">RE to ε-NFA</button>
+	<button onclick="draw(reToNfa)">RE to NFA</button>
+	<br><br>
+	<div id="graph"></div>
+	<footer><small>© 2021 putlx, no right reserved</small></footer>
+</body>
+
+</html>
