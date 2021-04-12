@@ -1,6 +1,6 @@
 let graph = null;
 
-function draw(func) {
+function draw(convert) {
     document.getElementById("msg").innerHTML = "";
     let re = document.getElementById("re").value.trim();
     if (!re.length)
@@ -8,7 +8,7 @@ function draw(func) {
     let takeSingleCharAsToken = document.getElementById("sc").checked;
     let starts, end, nfa;
     try {
-        [starts, end, nfa] = func(re, takeSingleCharAsToken);
+        [starts, end, nfa] = convert(re, takeSingleCharAsToken);
     } catch (error) {
         document.getElementById("msg").innerHTML = error.message;
         console.log(error);
@@ -35,9 +35,9 @@ function draw(func) {
         else
             endIsStart = true;
     if (endIsStart)
-        dot += `${end}[label="Start & End",style=filled,fillcolor="#4dabf7"]`
+        dot += `${end}[label="Start & End",style=filled,fillcolor="#4dabf7"];`
     else
-        dot += `${end}[label="End",style=filled,fillcolor="#ff8787"]`
+        dot += `${end}[label="End",style=filled,fillcolor="#ff8787"];`
     for (let state of states)
         dot += `${state}[shape=circle,label="",fixedsize=true,width=.15,style=filled,fillcolor="#ffd43b"];`
     dot += "}";

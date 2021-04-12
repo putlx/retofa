@@ -1,4 +1,4 @@
-function* parseTokens(re, takeSingleCharAsToken) {
+function* parse(re, takeSingleCharAsToken) {
     while ((re = re.trimStart()).length) {
         if ("().+*|".includes(re[0])) {
             yield [re[0], false];
@@ -91,7 +91,7 @@ function makeAst(tokens) {
 }
 
 function reToEpsilonNfa(re, takeSingleCharAsToken) {
-    let tokens = parseTokens(re, takeSingleCharAsToken);
+    let tokens = parse(re, takeSingleCharAsToken);
     let ast = makeAst(tokens);
 
     let nfa = new Map();
