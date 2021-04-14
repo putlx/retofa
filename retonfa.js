@@ -130,11 +130,11 @@ function reToEpsilonNfa(re, takeSingleCharAsToken) {
             throw new SyntaxError("Invalid operator");
     })(ast, start, end);
 
-    return [new Set([start]), end, nfa];
+    return [new Set([start]), new Set([end]), nfa];
 }
 
 function reToNfa(re, takeSingleCharAsToken) {
-    let [starts, end, nfa] = reToEpsilonNfa(re, takeSingleCharAsToken);
+    let [starts, ends, nfa] = reToEpsilonNfa(re, takeSingleCharAsToken);
 
     function extract_epsilon() {
         for (let [start, ways] of nfa) {
@@ -152,20 +152,20 @@ function reToNfa(re, takeSingleCharAsToken) {
     }
 
     for (let way; way = extract_epsilon();) {
-        let [b, e] = way;
+        let [s, e] = way;
         for (let [start, ways] of nfa)
             for (let [symbol, ends] of ways)
-                if (!(start === e && symbol === "") && ends.has(b))
+                if (!(start === e && symbol === "") && ends.has(s))
                     ends.add(e);
-        if (starts.has(b))
+        if (starts.has(s))
             starts.add(e);
-        if (!nfa.has(b) && b !== end) {
-            starts.delete(b);
+        if (!nfa.has(s) && !ends.has(s)) {
+            starts.delete(s);
             for (let [_, ways] of nfa)
                 for (let [_, ends] of ways)
-                    ends.delete(b);
+                    ends.delete(s);
         }
     }
 
-    return [starts, end, nfa];
+    return [starts, ends, nfa];
 }
