@@ -61,20 +61,7 @@ function reToDfa(re, takeSingleCharAsToken) {
             else
                 ways.delete(symbol);
 
-    function grouping(states) {
-        let groups = new Map();
-        for (let state of states) {
-            let waysN = dfa.get(state);
-            waysN = waysN ? waysN.size : 0;
-            let group = groups.get(waysN);
-            if (!group)
-                groups.set(waysN, group = new Set());
-            group.add(state);
-        }
-        return [...groups.values()];
-    }
-
-    let stateGroups = [...grouping(ends), ...grouping(notEnds)];
+    let stateGroups = [new Set(ends), notEnds];
 
     function getGroup(state) {
         for (let stateGroup of stateGroups)
@@ -86,20 +73,21 @@ function reToDfa(re, takeSingleCharAsToken) {
         for (let stateGroup of stateGroups) {
             if (stateGroup.size > 1) {
                 let base = stateGroup[Symbol.iterator]().next().value;
-                let divided = false;
-                for (let [symbol, end] of dfa.get(base) || []) {
-                    let selfGroup = getGroup(end);
+                let baseWays = dfa.get(base) || [];
+                let separated = false;
+                for (let [symbol, end] of baseWays) {
+                    let thisGroup = getGroup(end);
                     let otherGroup = new Set();
                     for (let state of stateGroup) {
                         if (state !== base) {
                             let group;
                             let ways = dfa.get(state);
-                            if (ways) {
+                            if (ways && ways.size === baseWays.size) {
                                 let end = ways.get(symbol);
                                 if (end)
                                     group = getGroup(end);
                             }
-                            if (group !== selfGroup)
+                            if (group !== thisGroup)
                                 otherGroup.add(state);
                         }
                     }
@@ -107,10 +95,10 @@ function reToDfa(re, takeSingleCharAsToken) {
                         for (let state of otherGroup)
                             stateGroup.delete(state);
                         stateGroups.push(otherGroup);
-                        divided = true;
+                        separated = true;
                     }
                 }
-                if (divided) return true;
+                if (separated) return true;
             }
         }
         return false;
@@ -133,7 +121,7 @@ function reToDfa(re, takeSingleCharAsToken) {
                 }
                 dfa.delete(state);
                 for (let ways of dfa.values())
-                    for (let ends of [...ways.values()])
+                    for (let ends of ways.values())
                         if (ends.delete(state))
                             ends.add(dst);
                 if (ends.delete(state))
