@@ -3,10 +3,19 @@ body {
 	line-height: 1.7em;
 }
 textarea {
-	width: 70%;
 	height: 7em;
 	font-size: 1.2em;
 	padding: 0.4em;
+}
+@media (orientation: portrait) {
+	textarea {
+		width: 90%;
+	}
+}
+@media (orientation: landscape) {
+	textarea {
+		width: 70%;
+	}
 }
 #msg {
 	color: red;

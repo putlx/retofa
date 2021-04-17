@@ -1,6 +1,8 @@
+"use strict";
+
 let graph = null;
 
-function draw(convert) {
+function draw(reToFa) {
     document.getElementById("msg").innerHTML = "";
     let re = document.getElementById("re").value.trim();
     if (!re.length)
@@ -8,7 +10,7 @@ function draw(convert) {
     let takeSingleCharAsToken = document.getElementById("sc").checked;
     let starts, ends, nfa;
     try {
-        [starts, ends, nfa] = convert(re, takeSingleCharAsToken);
+        [starts, ends, nfa] = reToFa(parse(tokensOf(re, takeSingleCharAsToken)));
     } catch (error) {
         document.getElementById("msg").innerHTML = error.message;
         console.log(error);

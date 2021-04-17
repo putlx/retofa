@@ -1,5 +1,5 @@
-function reToDfa(re, takeSingleCharAsToken) {
-    let [nfaStarts, nfaEnds, nfa] = reToEpsilonNfa(re, takeSingleCharAsToken);
+function reToDfa(ast) {
+    let [nfaStarts, nfaEnds, nfa] = reToEpsilonNfa(ast);
 
     function findEpsilon(start, dst) {
         let ways = nfa.get(start);
@@ -45,21 +45,21 @@ function reToDfa(re, takeSingleCharAsToken) {
                 notEnds.delete(startState);
             }
         }
-        for (let es of ways.values()) {
-            let endState = [...es].sort().join(key);
-            if (!ends.has(endState))
-                notEnds.add(endState);
-            if (!dfa.has(endState))
-                unresolved.push(es);
-        }
+        if (ways.size)
+            for (let es of ways.values()) {
+                let endState = [...es].sort().join(key);
+                if (!dfa.has(endState))
+                    unresolved.push(es);
+                if (!ends.has(endState))
+                    notEnds.add(endState);
+            }
+        else
+            dfa.delete(startState);
     }
 
     for (let ways of dfa.values())
         for (let [symbol, ends] of [...ways])
-            if (ends.size)
-                ways.set(symbol, [...ends].sort().join(key));
-            else
-                ways.delete(symbol);
+            ways.set(symbol, [...ends].sort().join(key));
 
     let stateGroups = [new Set(ends), notEnds];
 
