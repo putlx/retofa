@@ -18,7 +18,7 @@ function draw(reToFa) {
     }
 
     let states = new Set();
-    let dot = "digraph{";
+    let dot = "digraph{graph[pad=.3];edge[arrowsize=.6];node[style=filled];";
     for (let [start, ways] of nfa) {
         if (!starts.has(start) && !ends.has(start))
             states.add(start);
@@ -26,20 +26,20 @@ function draw(reToFa) {
             for (let e of es) {
                 if (!starts.has(e) && !ends.has(e))
                     states.add(e);
-                dot += `${start}->${e}[label=" ${symbol.replace("\"", "\\\"")}",arrowsize=.6];`
+                dot += `${start}->${e}[label=" ${symbol.replace("\"", "\\\"")}"];`
             }
         }
     }
     for (let start of starts)
         if (!ends.has(start))
-            dot += `${start}[label="Start",style=filled,fillcolor="#69db7c"];`
+            dot += `${start}[label="Start",fillcolor="#8ce99a"];`
         else
-            dot += `${start}[label="Start & End",style=filled,fillcolor="#4dabf7"];`
+            dot += `${start}[label="Start & End",fillcolor="#74c0fc"];`
     for (let end of ends)
         if (!starts.has(end))
-            dot += `${end}[label="End",style=filled,fillcolor="#ff8787"];`
+            dot += `${end}[label="End",fillcolor="#ffa8a8"];`
     for (let state of states)
-        dot += `${state}[shape=circle,label="",fixedsize=true,width=.15,style=filled,fillcolor="#ffd43b"];`
+        dot += `${state}[shape=circle,label="",fixedsize=true,width=.15,fillcolor="#ffe066"];`
     dot += "}";
 
     if (graph)
@@ -50,8 +50,6 @@ function draw(reToFa) {
         .renderSVGElement(dot)
         .then(element => {
             graph.appendChild(element);
-            graph.appendChild(document.createElement("br"));
-            graph.appendChild(document.createElement("br"));
         })
         .catch(error => {
             document.getElementById("msg").innerHTML = error.message;

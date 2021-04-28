@@ -14,15 +14,15 @@
 </head>
 
 <body>
-	<textarea id="re" placeholder="Regular Expression"></textarea>
+	<textarea id="re" placeholder="Regular Expression" spellcheck="false"></textarea>
 	<div id="msg"></div>
-	<input type="checkbox" id="sc">
-	<label for="sc">Take single character as token</label>
-	<br>
+	<div>
+		<input type="checkbox" id="sc">
+		<label for="sc">Take single character as token</label>
+	</div>
 	<button onclick="draw(reToEpsilonNfa)">RE to ε-NFA</button>
 	<button onclick="draw(reToNfa)">RE to NFA</button>
 	<button onclick="draw(reToDfa)">RE to DFA</button>
-	<br><br>
 	<div id="graph"></div>
 	<footer><small>© 2021 putlx, no right reserved</small></footer>
 </body>

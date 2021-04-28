@@ -1,15 +1,32 @@
 body {
+	font-family: Verdana, sans-serif;
+	color: #212529;
 	text-align: center;
 	line-height: 1.7em;
 }
+textarea,
+button {
+	border-radius: 1em;
+	font-family: inherit;
+	background-color: #f8f9fa;
+	border-color: #ced4da;
+}
 textarea {
 	height: 7em;
-	font-size: 1.2em;
+	font-size: 0.9em;
 	padding: 0.4em;
+	border-width: 0.12em;
+	outline: none;
+}
+textarea:hover {
+	border-color: #adb5bd;
+}
+textarea:focus {
+	border-color: #868e96;
 }
 @media (orientation: portrait) {
 	textarea {
-		width: 90%;
+		width: 100%;
 	}
 }
 @media (orientation: landscape) {
@@ -17,7 +34,30 @@ textarea {
 		width: 70%;
 	}
 }
+input,
+label {
+	font-size: 0.9em;
+	vertical-align: middle;
+}
+button {
+	border-style: solid;
+	border-width: 0.12em;
+	padding-left: 0.8em;
+	padding-right: 0.8em;
+	padding-top: 0.4em;
+	padding-bottom: 0.4em;
+	outline: none;
+}
+button:hover,
+button:active {
+	cursor: pointer;
+	background-color: #e9ecef;
+	border-color: #adb5bd;
+}
+div {
+	margin: 0.2em;
+}
 #msg {
-	color: red;
+	color: #c92a2a;
 	font-size: 0.9em;
 }
