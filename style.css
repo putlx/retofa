@@ -1,11 +1,12 @@
 body {
-	font-family: "Merriweather", sans-serif;
+	font-family: "Ubuntu", sans-serif;
 	color: #212529;
 	text-align: center;
 	line-height: 1.7em;
 }
 textarea,
 button {
+	font-size: 0.9em;
 	border-radius: 1em;
 	font-family: inherit;
 	background-color: #f8f9fa;
@@ -13,7 +14,7 @@ button {
 }
 textarea {
 	height: 9em;
-	font-size: 0.9em;
+	font-size: 1em;
 	padding: 0.6em;
 	border-width: 0.12em;
 	outline: none;
@@ -42,7 +43,6 @@ textarea:focus {
 }
 input,
 label {
-	font-size: 0.9em;
 	vertical-align: middle;
 }
 button {
