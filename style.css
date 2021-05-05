@@ -1,5 +1,5 @@
 body {
-	font-family: Verdana, sans-serif;
+	font-family: "Merriweather", sans-serif;
 	color: #212529;
 	text-align: center;
 	line-height: 1.7em;
@@ -12,9 +12,9 @@ button {
 	border-color: #ced4da;
 }
 textarea {
-	height: 7em;
+	height: 9em;
 	font-size: 0.9em;
-	padding: 0.4em;
+	padding: 0.6em;
 	border-width: 0.12em;
 	outline: none;
 }
@@ -28,10 +28,16 @@ textarea:focus {
 	textarea {
 		width: 100%;
 	}
+	body {
+		margin: 0.7em;
+	}
 }
 @media (orientation: landscape) {
 	textarea {
-		width: 70%;
+		width: 60%;
+	}
+	body {
+		margin: 1em;
 	}
 }
 input,
@@ -42,6 +48,8 @@ label {
 button {
 	border-style: solid;
 	border-width: 0.12em;
+	margin-left: 0.1em;
+	margin-right: 0.1em;
 	padding-left: 0.8em;
 	padding-right: 0.8em;
 	padding-top: 0.4em;
