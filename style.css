@@ -2,7 +2,7 @@ body {
 	font-family: "Ubuntu", sans-serif;
 	color: #212529;
 	text-align: center;
-	line-height: 1.7em;
+	line-height: 1.8em;
 }
 textarea,
 button {
@@ -14,9 +14,9 @@ button {
 }
 textarea {
 	height: 9em;
-	font-size: 1em;
+	font-size: 1.1em;
 	padding: 0.6em;
-	border-width: 0.12em;
+	border-width: 1px;
 	outline: none;
 }
 textarea:hover {
@@ -47,7 +47,7 @@ label {
 }
 button {
 	border-style: solid;
-	border-width: 0.12em;
+	border-width: 1px;
 	margin-left: 0.1em;
 	margin-right: 0.1em;
 	padding-left: 0.8em;
@@ -67,5 +67,4 @@ div {
 }
 #msg {
 	color: #c92a2a;
-	font-size: 0.9em;
 }
