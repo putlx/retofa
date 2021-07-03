@@ -37,8 +37,8 @@ function* tokensOf(re, takeSingleCharAsToken) {
 }
 
 function parse(tokens) {
-    let symbols = [];
-    let ops = [];
+    const symbols = [];
+    const ops = [];
 
     function take(op) {
         if (op === "." || op === "|") {

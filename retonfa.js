@@ -1,75 +1,75 @@
-function reToEpsilonNfa(ast) {
-    let nfa = new Map();
+function reToEpsilonNFA(ast) {
     let state = 0;
-    let start = state++;
-    let end = state++;
+    const nfa = new Map();
+    const start = state++;
+    const end = state++;
 
-    function insert(start, symbol, end) {
-        let ways = nfa.get(start);
-        if (!ways)
-            nfa.set(start, ways = new Map());
-        let ends = ways.get(symbol);
-        if (!ends)
-            ways.set(symbol, ends = new Set());
-        ends.add(end);
+    function insert(src, symbol, dst) {
+        let edges = nfa.get(src);
+        if (!edges)
+            nfa.set(src, edges = new Map());
+        let dsts = edges.get(symbol);
+        if (!dsts)
+            edges.set(symbol, dsts = new Set());
+        dsts.add(dst);
     }
 
-    (function makeNfa(ast, start, end) {
+    (function makeNFA(ast, src, dst) {
         if (!ast.op) {
-            insert(start, ast.symbol, end);
+            insert(src, ast.symbol, dst);
         } else if (ast.op === ".") {
-            let mid = state++;
-            makeNfa(ast.lhs, start, mid);
-            makeNfa(ast.rhs, mid, end);
+            const mid = state++;
+            makeNFA(ast.lhs, src, mid);
+            makeNFA(ast.rhs, mid, dst);
         } else if (ast.op === "|") {
-            makeNfa(ast.lhs, start, end);
-            makeNfa(ast.rhs, start, end);
+            makeNFA(ast.lhs, src, dst);
+            makeNFA(ast.rhs, src, dst);
         } else if (ast.op === "*") {
-            let mid = state++;
-            insert(start, "", mid);
-            insert(mid, "", end);
-            makeNfa(ast.lhs, mid, mid);
+            const mid = state++;
+            insert(src, "", mid);
+            insert(mid, "", dst);
+            makeNFA(ast.lhs, mid, mid);
         } else { // ast.op === "+"
-            let rhs = { op: "*", lhs: ast.lhs };
-            let lhs = { op: ".", lhs: ast.lhs, rhs: rhs };
-            makeNfa(lhs, start, end);
+            const rhs = { op: "*", lhs: ast.lhs };
+            const lhs = { op: ".", lhs: ast.lhs, rhs: rhs };
+            makeNFA(lhs, src, dst);
         }
     })(ast, start, end);
 
     return [new Set([start]), new Set([end]), nfa];
 }
 
-function reToNfa(ast) {
-    let [starts, ends, nfa] = reToEpsilonNfa(ast);
+function reToNFA(ast) {
+    const [starts, ends, nfa] = reToEpsilonNFA(ast);
 
-    function extract_epsilon() {
-        for (let [start, ways] of nfa) {
-            let ends = ways.get("");
-            if (ends && ends.size) {
-                let end = ends[Symbol.iterator]().next().value;
-                ends.delete(end);
-                if (!ends.size)
-                    ways.delete("");
-                if (!ways.size)
-                    nfa.delete(start);
-                return [start, end];
+    function extractEpsilonEdge() {
+        for (const [src, edges] of nfa) {
+            const dsts = edges.get("");
+            if (dsts && dsts.size) {
+                const dst = dsts[Symbol.iterator]().next().value;
+                dsts.delete(dst);
+                if (!dsts.size)
+                    edges.delete("");
+                if (!edges.size)
+                    nfa.delete(src);
+                return [src, dst];
             }
         }
     }
 
-    for (let way; way = extract_epsilon();) {
-        let [s, e] = way;
-        for (let [start, ways] of nfa)
-            for (let [symbol, ends] of ways)
-                if (!(start === e && symbol === "") && ends.has(s))
-                    ends.add(e);
-        if (starts.has(s))
-            starts.add(e);
-        if (!nfa.has(s) && !ends.has(s)) {
-            starts.delete(s);
-            for (let ways of nfa.values())
-                for (let ends of ways.values())
-                    ends.delete(s);
+    for (let edge; edge = extractEpsilonEdge();) {
+        const [eSrc, eDst] = edge;
+        for (const [src, edges] of nfa)
+            for (const [symbol, dsts] of edges)
+                if (!(src === eDst && symbol === "") && dsts.has(eSrc))
+                    dsts.add(eDst);
+        if (starts.has(eSrc))
+            starts.add(eDst);
+        if (!nfa.has(eSrc) && !ends.has(eSrc)) {
+            starts.delete(eSrc);
+            for (const edges of nfa.values())
+                for (const dsts of edges.values())
+                    dsts.delete(eSrc);
         }
     }
 

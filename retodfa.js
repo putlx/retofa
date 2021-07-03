@@ -1,100 +1,100 @@
-function reToDfa(ast) {
-    let [nfaStarts, nfaEnds, nfa] = reToEpsilonNfa(ast);
+function reToDFA(ast) {
+    let [nfaStarts, nfaEnds, nfa] = reToEpsilonNFA(ast);
 
-    function findEpsilon(start, dst) {
-        let ways = nfa.get(start);
-        if (ways) {
-            for (let end of ways.get("") || []) {
-                if (!dst.has(end)) {
-                    dst.add(end);
-                    findEpsilon(end, dst);
+    function epsilonClosure(src, set) {
+        const edges = nfa.get(src);
+        if (edges) {
+            for (const dst of edges.get("") || []) {
+                if (!set.has(dst)) {
+                    set.add(dst);
+                    epsilonClosure(dst, set);
                 }
             }
         }
     }
 
-    findEpsilon(nfaStarts[Symbol.iterator]().next().value, nfaStarts);
-    let key = Date.now().toString().slice(3);
-    let unresolved = [nfaStarts];
-    let dfa = new Map();
-    let starts = new Set([[...nfaStarts].sort().join(key)]);
-    let ends = new Set();
-    let notEnds = new Set();
+    epsilonClosure(nfaStarts[Symbol.iterator]().next().value, nfaStarts);
+    const key = Date.now().toString().slice(3);
+    const unresolved = [nfaStarts];
+    const dfa = new Map();
+    const starts = new Set([[...nfaStarts].sort().join(key)]);
+    const ends = new Set();
+    const notEnds = new Set();
 
     while (unresolved.length) {
-        let starts = unresolved.pop();
-        let startState = [...starts].sort().join(key);
-        if (!ends.has(startState))
-            notEnds.add(startState);
-        let ways = new Map();
-        dfa.set(startState, ways);
-        for (let start of starts) {
-            for (let [symbol, nfaEnds] of nfa.get(start) || []) {
+        const srcs = unresolved.pop();
+        const start = [...srcs].sort().join(key);
+        if (!ends.has(start))
+            notEnds.add(start);
+        const edges = new Map();
+        dfa.set(start, edges);
+        for (const src of srcs) {
+            for (const [symbol, nfaDsts] of nfa.get(src) || []) {
                 if (symbol !== "") {
-                    let ends = ways.get(symbol);
-                    if (!ends)
-                        ways.set(symbol, ends = new Set());
-                    for (let end of nfaEnds) {
-                        ends.add(end);
-                        findEpsilon(end, ends);
+                    let dsts = edges.get(symbol);
+                    if (!dsts)
+                        edges.set(symbol, dsts = new Set());
+                    for (const nfaDst of nfaDsts) {
+                        dsts.add(nfaDst);
+                        epsilonClosure(nfaDst, dsts);
                     }
                 }
             }
-            if (nfaEnds.has(start)) {
-                ends.add(startState);
-                notEnds.delete(startState);
+            if (nfaEnds.has(src)) {
+                ends.add(start);
+                notEnds.delete(start);
             }
         }
-        if (ways.size)
-            for (let es of ways.values()) {
-                let endState = [...es].sort().join(key);
-                if (!dfa.has(endState))
-                    unresolved.push(es);
-                if (!ends.has(endState))
-                    notEnds.add(endState);
+        if (edges.size)
+            for (const dsts of edges.values()) {
+                const end = [...dsts].sort().join(key);
+                if (!dfa.has(end))
+                    unresolved.push(dsts);
+                if (!ends.has(end))
+                    notEnds.add(end);
             }
         else
-            dfa.delete(startState);
+            dfa.delete(start);
     }
 
-    for (let ways of dfa.values())
-        for (let [symbol, ends] of [...ways])
-            ways.set(symbol, [...ends].sort().join(key));
+    for (const edges of dfa.values())
+        for (const [symbol, dsts] of [...edges])
+            edges.set(symbol, [...dsts].sort().join(key));
 
-    let stateGroups = [new Set(ends), notEnds];
+    const groups = [new Set(ends), notEnds];
 
-    function getGroup(state) {
-        for (let stateGroup of stateGroups)
-            if (stateGroup.has(state))
-                return stateGroup;
+    function findGroup(state) {
+        for (const group of groups)
+            if (group.has(state))
+                return group;
     }
 
     while ((function () {
-        for (let stateGroup of stateGroups) {
-            if (stateGroup.size > 1) {
-                let base = stateGroup[Symbol.iterator]().next().value;
-                let baseWays = dfa.get(base) || [];
+        for (const group of groups) {
+            if (group.size > 1) {
                 let separated = false;
-                for (let [symbol, end] of baseWays) {
-                    let thisGroup = getGroup(end);
-                    let otherGroup = new Set();
-                    for (let state of stateGroup) {
+                const base = group[Symbol.iterator]().next().value;
+                const baseEdges = dfa.get(base);
+                for (const [symbol, dst] of baseEdges || []) {
+                    const self = findGroup(dst);
+                    const other = new Set();
+                    for (const state of group) {
                         if (state !== base) {
                             let group;
-                            let ways = dfa.get(state);
-                            if (ways && ways.size === baseWays.size) {
-                                let end = ways.get(symbol);
-                                if (end)
-                                    group = getGroup(end);
+                            const edges = dfa.get(state);
+                            if (edges && edges.size === baseEdges.size) {
+                                const dst = edges.get(symbol);
+                                if (dst)
+                                    group = findGroup(dst)
                             }
-                            if (group !== thisGroup)
-                                otherGroup.add(state);
+                            if (group !== self)
+                                other.add(state);
                         }
                     }
-                    if (otherGroup.size) {
-                        for (let state of otherGroup)
-                            stateGroup.delete(state);
-                        stateGroups.push(otherGroup);
+                    if (other.size) {
+                        for (const state of other)
+                            group.delete(state);
+                        groups.push(other);
                         separated = true;
                     }
                 }
@@ -104,28 +104,28 @@ function reToDfa(ast) {
         return false;
     })());
 
-    for (let ways of dfa.values())
-        for (let [symbol, end] of [...ways])
-            ways.set(symbol, new Set([end]));
+    for (const edges of dfa.values())
+        for (const [symbol, dst] of [...edges])
+            edges.set(symbol, new Set([dst]));
 
-    for (let stateGroup of stateGroups) {
-        if (stateGroup.size > 1) {
-            let states = stateGroup[Symbol.iterator]();
-            let dst = states.next().value;
-            let ways = dfa.get(dst);
-            for (let state of states) {
-                for (let [symbol, ends] of dfa.get(state) || []) {
-                    let endsDst = ways.get(symbol);
-                    for (let end of ends)
-                        endsDst.add(end);
+    for (const group of groups) {
+        if (group.size > 1) {
+            const states = group[Symbol.iterator]();
+            const base = states.next().value;
+            const baseEdges = dfa.get(base);
+            for (const state of states) {
+                for (const [symbol, dsts] of dfa.get(state) || []) {
+                    const baseDsts = baseEdges.get(symbol);
+                    for (const dst of dsts)
+                        baseDsts.add(dst);
                 }
                 dfa.delete(state);
-                for (let ways of dfa.values())
-                    for (let ends of ways.values())
-                        if (ends.delete(state))
-                            ends.add(dst);
+                for (const edges of dfa.values())
+                    for (const dsts of edges.values())
+                        if (dsts.delete(state))
+                            dsts.add(base);
                 if (ends.delete(state))
-                    ends.add(dst);
+                    ends.add(base);
             }
         }
     }
