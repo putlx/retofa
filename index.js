@@ -1,8 +1,9 @@
 "use strict";
 
 function draw(reToFA) {
-    document.getElementById("msg").innerHTML = "";
-    const re = document.getElementById("re").value.trim();
+    const textarea = document.getElementById("re");
+    textarea.classList.remove("is-invalid");
+    const re = textarea.value.trim();
     const sc = document.getElementById("sc").checked;
     if (!re.length) return;
     try {
@@ -46,6 +47,7 @@ function draw(reToFA) {
     } catch (error) {
         document.getElementById("msg").innerHTML = error.message;
         console.log(error);
+        textarea.classList.add("is-invalid");
     }
 }
 
