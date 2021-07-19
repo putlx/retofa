@@ -45,10 +45,12 @@ function parse(tokens) {
             if (symbols.length < 2)
                 throw new SyntaxError("Invalid syntax");
             symbols.push({ op: op, rhs: symbols.pop(), lhs: symbols.pop() });
-        } else {
+        } else if (op === "*" || op === "+") {
             if (symbols.length < 1)
                 throw new SyntaxError("Invalid syntax");
             symbols.push({ op: op, lhs: symbols.pop() });
+        } else {
+            throw new SyntaxError("Unclosed parenthesis");
         }
     }
 
