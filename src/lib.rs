@@ -321,6 +321,7 @@ impl<T: Display + Clone + Ord> TryInto<String> for FA<T> {
             .flatten()
             .filter(|s| !self.start.contains(s))
             .filter(|s| !self.accept.contains(s))
+            .collect::<BTreeSet<_>>()
         {
             dot.push('\t');
             dot += &format!(r##"{} [shape=circle,width=.15,fixedsize=true];"##, s);
