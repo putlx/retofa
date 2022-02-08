@@ -1,11 +1,8 @@
-#![feature(iter_intersperse)]
-#![feature(map_first_last)]
-
 mod parser;
 
 pub use parser::*;
 use std::collections::{BTreeMap, BTreeSet};
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 use std::iter::once;
 use std::ops::RangeFrom;
 use wasm_bindgen::prelude::*;
@@ -32,34 +29,24 @@ impl From<Vec<NFAState>> for DFAState {
     }
 }
 
-impl Debug for DFAState {
+impl fmt::Debug for DFAState {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "[")?;
-        for &n in &self.0 {
-            match n {
-                0 => write!(f, ", "),
-                n => write!(f, "{}", n),
-            }?;
+        let mut ss = self.0.iter().peekable();
+        while let Some(s) = ss.next() {
+            write!(f, "{}", s)?;
+            if ss.peek().is_some() {
+                write!(f, ", ")?;
+            }
         }
         write!(f, "]")
     }
 }
 
-const ALPHANUMERICS: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 impl Display for DFAState {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for &n in &self.0 {
-            if n == 0 {
-                write!(f, "_")?;
-            } else {
-                let mut n = n;
-                while n > 0 {
-                    let i = n as usize % ALPHANUMERICS.len();
-                    write!(f, "{}", ALPHANUMERICS[i])?;
-                    n /= ALPHANUMERICS.len() as NFAState;
-                }
-            }
+        for n in &self.0 {
+            write!(f, "_{}", n)?;
         }
         Ok(())
     }
@@ -179,7 +166,8 @@ impl NFA {
     fn take_epsilon_edge(&mut self) -> Option<(NFAState, NFAState)> {
         for (&src, symbols) in self.0.tf.iter_mut() {
             if let Some(dsts) = symbols.get_mut("") {
-                let dst = dsts.pop_last().unwrap();
+                let dst = *dsts.iter().next().unwrap();
+                let dst = dsts.take(&dst).unwrap();
                 if dsts.is_empty() {
                     symbols.remove("");
                     if symbols.is_empty() {
@@ -198,14 +186,7 @@ impl DFA {
     #[wasm_bindgen(constructor)]
     pub fn new(ast: AST) -> Self {
         let nfa = NFA::new(ast);
-        let mut start: DFAState = nfa
-            .0
-            .start
-            .iter()
-            .copied()
-            .intersperse(0)
-            .collect::<Vec<_>>()
-            .into();
+        let mut start: DFAState = nfa.0.start.iter().copied().collect::<Vec<_>>().into();
         let mut accept = BTreeSet::new();
         let mut not_accept = BTreeSet::new();
         let mut tf = BTreeMap::new();
@@ -231,12 +212,7 @@ impl DFA {
             } else {
                 let mut dfa_symbols = BTreeMap::new();
                 for (sym, dsts) in symbols {
-                    let dfa_dst = dsts
-                        .iter()
-                        .copied()
-                        .intersperse(0)
-                        .collect::<Vec<_>>()
-                        .into();
+                    let dfa_dst = dsts.iter().copied().collect::<Vec<_>>().into();
                     if dfa_dst != dfa_src
                         && !tf.contains_key(&dfa_dst)
                         && !resolved_empty.contains(&dfa_dst)
@@ -256,7 +232,7 @@ impl DFA {
                 for state in grp {
                     let grp_ptr = |s: &BTreeSet<_>| {
                         grps.iter()
-                            .find(|grp| grp.contains(s.first().unwrap()))
+                            .find(|grp| grp.contains(s.iter().next().unwrap()))
                             .unwrap() as *const _
                     };
                     let key = tf
@@ -325,17 +301,17 @@ impl<T: Display + Clone + Ord> TryInto<String> for FA<T> {
         let mut dot = String::from(DOT_HEADER);
         for s in &self.start & &self.accept {
             dot.push('\t');
-            dot += &format!(r##"_{} [label="Start & Accept",fillcolor="#74c0fc"];"##, s);
+            dot += &format!(r##"{} [label="Start & Accept",fillcolor="#74c0fc"];"##, s);
             dot.push('\n');
         }
         for s in &self.start - &self.accept {
             dot.push('\t');
-            dot += &format!(r##"_{} [label="Start",fillcolor="#8ce99a"];"##, s);
+            dot += &format!(r##"{} [label="Start",fillcolor="#8ce99a"];"##, s);
             dot.push('\n');
         }
         for s in &self.accept - &self.start {
             dot.push('\t');
-            dot += &format!(r##"_{} [label="Accept",fillcolor="#ffa8a8"];"##, s);
+            dot += &format!(r##"{} [label="Accept",fillcolor="#ffa8a8"];"##, s);
             dot.push('\n');
         }
         for s in self
@@ -347,7 +323,7 @@ impl<T: Display + Clone + Ord> TryInto<String> for FA<T> {
             .filter(|s| !self.accept.contains(s))
         {
             dot.push('\t');
-            dot += &format!(r##"_{} [shape=circle,width=.15,fixedsize=true];"##, s);
+            dot += &format!(r##"{} [shape=circle,width=.15,fixedsize=true];"##, s);
             dot.push('\n');
         }
         for (src, symbols) in self.tf {
@@ -356,7 +332,7 @@ impl<T: Display + Clone + Ord> TryInto<String> for FA<T> {
                 let sym = &sym[1..sym.len() - 1];
                 for dst in dsts {
                     dot.push('\t');
-                    dot += &format!(r#"_{} -> _{} [label=" {}"];"#, src, dst, sym);
+                    dot += &format!(r#"{} -> {} [label=" {}"];"#, src, dst, sym);
                     dot.push('\n');
                 }
             }
