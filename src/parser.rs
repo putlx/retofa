@@ -26,10 +26,10 @@ struct Stream<'a> {
 enum Oprt {
     LeftParenthesis,
     RightParenthesis,
-    Dot,
-    Plus,
-    Asterisk,
+    Concatenate,
     Or,
+    ZeroOrMore,
+    OneOrMore,
 }
 
 enum Token {
@@ -45,9 +45,9 @@ impl<'a> Iterator for Stream<'a> {
         match self.stream.next() {
             Some('(') => Some(Ok(Token::Oprt(Oprt::LeftParenthesis))),
             Some(')') => Some(Ok(Token::Oprt(Oprt::RightParenthesis))),
-            Some('.') => Some(Ok(Token::Oprt(Oprt::Dot))),
-            Some('+') => Some(Ok(Token::Oprt(Oprt::Plus))),
-            Some('*') => Some(Ok(Token::Oprt(Oprt::Asterisk))),
+            Some('.') => Some(Ok(Token::Oprt(Oprt::Concatenate))),
+            Some('+') => Some(Ok(Token::Oprt(Oprt::OneOrMore))),
+            Some('*') => Some(Ok(Token::Oprt(Oprt::ZeroOrMore))),
             Some('|') => Some(Ok(Token::Oprt(Oprt::Or))),
             Some(quote @ ('\'' | '"')) => {
                 let mut sym = String::new();
@@ -136,7 +136,7 @@ impl Parser {
             eos = match token? {
                 Token::Symbol(sym) => {
                     if eos {
-                        self.oprts.push(Oprt::Dot);
+                        self.oprts.push(Oprt::Concatenate);
                     }
                     self.symbols.push(AST::new(Inner::Symbol(sym)));
                     true
@@ -144,7 +144,7 @@ impl Parser {
                 Token::Oprt(oprt) => match oprt {
                     Oprt::LeftParenthesis => {
                         if eos {
-                            self.oprts.push(Oprt::Dot);
+                            self.oprts.push(Oprt::Concatenate);
                         }
                         self.oprts.push(oprt);
                         false
@@ -156,14 +156,14 @@ impl Parser {
                             None => return Err(SyntaxError::InvalidSyntax.into()),
                         }
                     },
-                    Oprt::Asterisk | Oprt::Plus => {
+                    Oprt::ZeroOrMore | Oprt::OneOrMore => {
                         self.take(oprt)?;
                         true
                     }
-                    Oprt::Dot | Oprt::Or => {
+                    Oprt::Concatenate | Oprt::Or => {
                         loop {
                             match self.oprts.pop() {
-                                Some(oprt @ (Oprt::Dot | Oprt::Or)) => self.take(oprt)?,
+                                Some(oprt @ (Oprt::Concatenate | Oprt::Or)) => self.take(oprt)?,
                                 Some(oprt) => {
                                     self.oprts.push(oprt);
                                     break;
@@ -189,7 +189,7 @@ impl Parser {
 
     fn take(&mut self, oprt: Oprt) -> Result<(), SyntaxError> {
         match oprt {
-            Oprt::Dot => {
+            Oprt::Concatenate => {
                 let rhs = self.symbols.pop().ok_or(SyntaxError::InvalidSyntax)?;
                 let lhs = self.symbols.pop().ok_or(SyntaxError::InvalidSyntax)?;
                 self.symbols.push(AST::new(Inner::Concatenate(lhs, rhs)));
@@ -199,11 +199,11 @@ impl Parser {
                 let lhs = self.symbols.pop().ok_or(SyntaxError::InvalidSyntax)?;
                 self.symbols.push(AST::new(Inner::Or(lhs, rhs)));
             }
-            Oprt::Asterisk => {
+            Oprt::ZeroOrMore => {
                 let oprn = self.symbols.pop().ok_or(SyntaxError::InvalidSyntax)?;
                 self.symbols.push(AST::new(Inner::ZeroOrMore(oprn)));
             }
-            Oprt::Plus => {
+            Oprt::OneOrMore => {
                 let oprn = self.symbols.pop().ok_or(SyntaxError::InvalidSyntax)?;
                 self.symbols.push(AST::new(Inner::OneOrMore(oprn)));
             }
