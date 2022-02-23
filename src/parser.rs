@@ -30,6 +30,7 @@ enum Oprt {
     Or,
     ZeroOrMore,
     OneOrMore,
+    ZeroOrOne,
 }
 
 enum Token {
@@ -48,6 +49,7 @@ impl<'a> Iterator for Stream<'a> {
             Some('.') => Some(Ok(Token::Oprt(Oprt::Concatenate))),
             Some('+') => Some(Ok(Token::Oprt(Oprt::OneOrMore))),
             Some('*') => Some(Ok(Token::Oprt(Oprt::ZeroOrMore))),
+            Some('?') => Some(Ok(Token::Oprt(Oprt::ZeroOrOne))),
             Some('|') => Some(Ok(Token::Oprt(Oprt::Or))),
             Some(quote @ ('\'' | '"')) => {
                 let mut sym = String::new();
@@ -90,6 +92,7 @@ pub enum Inner {
     Or(AST, AST),
     ZeroOrMore(AST),
     OneOrMore(AST),
+    ZeroOrOne(AST),
 }
 
 #[wasm_bindgen]
@@ -156,7 +159,7 @@ impl Parser {
                             None => return Err(SyntaxError::InvalidSyntax.into()),
                         }
                     },
-                    Oprt::ZeroOrMore | Oprt::OneOrMore => {
+                    Oprt::ZeroOrMore | Oprt::OneOrMore | Oprt::ZeroOrOne => {
                         self.take(oprt)?;
                         true
                     }
@@ -206,6 +209,10 @@ impl Parser {
             Oprt::OneOrMore => {
                 let oprn = self.symbols.pop().ok_or(SyntaxError::InvalidSyntax)?;
                 self.symbols.push(AST::new(Inner::OneOrMore(oprn)));
+            }
+            Oprt::ZeroOrOne => {
+                let oprn = self.symbols.pop().ok_or(SyntaxError::InvalidSyntax)?;
+                self.symbols.push(AST::new(Inner::ZeroOrOne(oprn)));
             }
             _ => return Err(SyntaxError::UnclosedParenthesis),
         }

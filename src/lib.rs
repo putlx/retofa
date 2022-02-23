@@ -125,6 +125,10 @@ impl EpsilonNFA {
                 let lhs = AST::new(Inner::Concatenate(oprn, rhs));
                 self.visit(states, lhs, src, dst);
             }
+            Inner::ZeroOrOne(oprn) => {
+                self.visit(states, AST::new(Inner::Symbol("".into())), src, dst);
+                self.visit(states, oprn, src, dst);
+            }
         }
     }
 }

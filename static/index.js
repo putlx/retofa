@@ -28,6 +28,6 @@ window.addEventListener("load", async function () {
     buttons[0].onclick = async () => await render(EpsilonNFA);
     buttons[1].onclick = async () => await render(NFA);
     buttons[2].onclick = async () => await render(DFA);
-    document.querySelector("#re").value = "(''|pos|neg)(digit+(''|dot digit*)|digit* dot digit+)";
+    document.querySelector("#re").value = `('+'|'-')?(digit+(dot digit*)?|digit* dot digit+)`;
     await render(DFA);
 });
